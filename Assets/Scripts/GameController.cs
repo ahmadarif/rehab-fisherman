@@ -1,24 +1,59 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 public class GameController : MonoBehaviour {
-    public Transform stepObj;
-    public Transform[] fish;
+
+    [SerializeField]
+    public Transform stepObj,
+        caughtTarget;
+
     public Transform[] target;
+    public PlayerController player;
+
+    public GameObject fish;
+
+    public float currentTime;
+    public float speed;
+    public bool timeOn = true, 
+        isAngleReached,
+        onHook;
+
+    public Image bar_time,
+        ui_strike,
+        ui_failed;
+
+    public Text text_time, 
+        text_score, 
+        text_step, 
+        text_angle,
+        text_fishCaught;
+
+    private int current;
+    int angle,
+        angleTarget,
+        fishCaught,
+        score,
+        currentLevel;
+
     //public int stepDistance = 5;
     //public int maxStep = 10;
 
-    public float currentTime = 10;
-    public float speed;
-    public bool timeOn = true;
-    public Image bar_time;
-    public Text text_time, text_score, text_step;
-
-    private int current;
-
     // Use this for initialization
     void Start () {
+
+        currentLevel = 1;
+        currentTime = 10;
+        fishCaught = 0;
+        angle = 0;
+        
+        //menentukan sudut tujuan. sementara ditentukan oleh nilai random
+        angleTarget = UnityEngine.Random.RandomRange(0, 180);
+
+        Debug.Log("Target Sekarang = " + angleTarget);
+
+        
 
         /*Instantiate Step
         for (int i = 0; i < maxStep; i++)
@@ -32,15 +67,35 @@ public class GameController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        //fish movement
+        checkAngle();
+
+        timeRun();
+
+        updateFishOnHook();
+
+
+        /*fish movement
         if (fish[0].transform.position != target[current].position)
         {
             Vector3 pos = Vector3.MoveTowards(fish[0].transform.position, target[current].position, speed * Time.deltaTime);
             fish[0].GetComponent<Rigidbody2D>().MovePosition(pos);
-        }
+        }*/
 
         //time bar update
-        if (timeOn)
+        
+    }
+
+    private void updateFishOnHook()
+    {
+        if (onHook)
+        {
+            Instantiate(fish, new Vector2(caughtTarget.transform.position.x, caughtTarget.transform.position.y), Quaternion.identity);
+        }
+    }
+
+    private void timeRun()
+    {
+        if (timeOn == true && isAngleReached == false)
         {
             if (currentTime >= 0)
             {
@@ -51,8 +106,60 @@ public class GameController : MonoBehaviour {
             }
             else
             {
-                Debug.Log("Time's Up");
+                Debug.Log("Time's Up! Game Over");
             }
         }
+        else if (timeOn == true && isAngleReached == true)
+        {
+            //hentikan waktu
+            timeOn = false;
+
+            Debug.Log("Sudut Tercapai! Lanjut Level");
+            fishCaught++;
+            text_fishCaught.text = fishCaught + "/10";
+            isAngleReached = false;
+
+
+        }
+    }
+
+    private void checkAngle()
+    {
+        
+        if (angle != angleTarget)
+        {
+            isAngleReached = false;
+            if (Input.GetKey(KeyCode.DownArrow))
+            {
+                angle--;
+                text_angle.text = angle.ToString();
+            }
+            else if (Input.GetKey(KeyCode.UpArrow))
+            {
+                angle++;
+                text_angle.text = angle.ToString();
+
+            }
+
+        }
+        else {
+
+            isAngleReached = true;
+            /*
+            1. Play animasi narik kail
+            2. Ikan Nambah
+        
+            */
+
+        }
+
+        if (isAngleReached)
+        {
+            player.myAnim.SetBool("pull", true);
+            Debug.Log("Animasi pull dieksekusi");
+            ui_strike.gameObject.SetActive(true);
+        }
+
+        //player.myAnim.SetBool("pull", false);
     }
 }
