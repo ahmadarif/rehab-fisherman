@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour {
         if (Input.GetKey(KeyCode.DownArrow))
         {
             print("Space is pressed");
-            //line.localScale += new Vector3(0, pullSpeed, 0);
+            line.localScale += new Vector3(0, 0.01f, 0);
             //putar turun gauge sesuai dengan angkatan tangan
             anglePointer.transform.Rotate(0, 0, pullSpeed);
             pullHand.transform.Rotate(0, 0, -pullSpeed);
@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour {
         else if (Input.GetKey(KeyCode.UpArrow))
         {
 
-            //line.localScale -= new Vector3(0, pullSpeed, 0);
+            line.localScale -= new Vector3(0, 0.01f, 0);
             //putar naik gauge sesuai dengan angkatan tangan
             anglePointer.transform.Rotate(0, 0, -pullSpeed);
             pullHand.transform.Rotate(0, 0, pullSpeed);
