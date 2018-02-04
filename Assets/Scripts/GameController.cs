@@ -49,11 +49,8 @@ public class GameController : MonoBehaviour {
         angle = 0;
         
         //menentukan sudut tujuan. sementara ditentukan oleh nilai random
-        angleTarget = UnityEngine.Random.RandomRange(0, 180);
-
+        angleTarget = UnityEngine.Random.RandomRange(1, 180);
         Debug.Log("Target Sekarang = " + angleTarget);
-
-        
 
         /*Instantiate Step
         for (int i = 0; i < maxStep; i++)
@@ -63,15 +60,22 @@ public class GameController : MonoBehaviour {
 
         }*/
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-        checkAngle();
+    // Update is called once per frame
+    void Update () {
 
-        timeRun();
+        //Pengulangan game sebanyak 10 kali
+        if(currentLevel <= 10)
+        {
+            
+            checkAngle();
 
-        updateFishOnHook();
+            timeRun();
+
+            updateFishOnHook();
+        }
+
+        
 
 
         /*fish movement
@@ -145,21 +149,45 @@ public class GameController : MonoBehaviour {
         else {
 
             isAngleReached = true;
+
+            //
             /*
             1. Play animasi narik kail
             2. Ikan Nambah
         
             */
 
-        }
-
-        if (isAngleReached)
-        {
-            player.myAnim.SetBool("pull", true);
+            //player.myAnim.SetBool("pull", true);
+            //player.myAnim.SetBool("throw", true);
             Debug.Log("Animasi pull dieksekusi");
             ui_strike.gameObject.SetActive(true);
+
+            //set back hand to 0
+            resetAngle();
+
         }
 
-        //player.myAnim.SetBool("pull", false);
+        
+    }
+
+    private void resetAngle()
+    {
+        player.pullHand.transform.rotation = Quaternion.identity;
+        player.anglePointer.transform.rotation = Quaternion.identity;
+
+        angle = 0;
+        text_angle.text = "0";
+        StartCoroutine(waitFor(1.0f));
+        Debug.Log("Nunggu selesai");
+        
+    }
+
+    IEnumerator waitFor(float duration)
+    {
+
+        yield return new WaitForSeconds(duration);
+
+        ui_strike.gameObject.SetActive(false);
+
     }
 }
