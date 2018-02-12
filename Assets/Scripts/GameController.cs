@@ -143,8 +143,11 @@ public class GameController : MonoBehaviour {
             text_fishCaught.text = fishCaught + "/10";
             isAngleReached = false;
 
+            player.myAnim.SetBool("pull", true);
+            StartCoroutine(waitFor(1f));
 
         }
+
     }
 
     private void checkAngle()
@@ -203,13 +206,13 @@ public class GameController : MonoBehaviour {
         //set pullhand jadi 0
         //Quaternion target = Quaternion.Euler(0,0, 340f);
         //player.pullHand.transform.rotation = Quaternion.Slerp(player.pullHand.transform.rotation, target, 0);
-        player.pullHand.transform.rotation = Quaternion.identity;
+        //player.pullHand.transform.rotation = Quaternion.identity;
 
         //set anglePointer jadi 0
         player.anglePointer.transform.rotation = Quaternion.identity;
 
         //set line jadi panjang
-        player.line.transform.localScale = new Vector3(1,1.7f,1);
+        player.line.transform.localScale = new Vector3(1,1f,1);
 
         //set angle dan text_angle jadi 0
         angle = 0;
@@ -235,6 +238,7 @@ public class GameController : MonoBehaviour {
         timeOn = true;
         isAngleReached = false;
         moveFish.moveToTarget = true;
+        player.myAnim.SetBool("pull", false);
         ui_strike.gameObject.SetActive(false);
         ui_failed.gameObject.SetActive(false);
 
