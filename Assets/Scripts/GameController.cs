@@ -5,7 +5,8 @@ public class GameController : MonoBehaviour {
 
     [SerializeField]
     public Transform stepObj,
-        caughtTarget;
+        caughtTarget,
+        angleTarget_ui;
 
     public Transform[] target;
     public PlayerController player;
@@ -198,6 +199,11 @@ public class GameController : MonoBehaviour {
     {
         //sementara random
         angleTarget = UnityEngine.Random.RandomRange(50, 100);
+        angleTarget_ui.transform.rotation = Quaternion.identity;
+        angleTarget_ui.transform.Rotate(0, 0, -angleTarget);
+
+        //anglePointer.transform.Rotate(0, 0, pullSpeed);
+
     }
 
     private void reset()
@@ -211,8 +217,7 @@ public class GameController : MonoBehaviour {
         //set anglePointer jadi 0
         player.anglePointer.transform.rotation = Quaternion.identity;
 
-        //set line jadi panjang
-        player.line.transform.localScale = new Vector3(1,1f,1);
+        StartCoroutine(waitFor(1.0f));
 
         //set angle dan text_angle jadi 0
         angle = 0;
@@ -236,6 +241,8 @@ public class GameController : MonoBehaviour {
 
         yield return new WaitForSeconds(duration);
         timeOn = true;
+        //set line jadi panjang
+        player.line.transform.localScale = new Vector3(1, 1f, 1);
         isAngleReached = false;
         moveFish.moveToTarget = true;
         player.myAnim.SetBool("pull", false);
@@ -251,12 +258,4 @@ public class GameController : MonoBehaviour {
         onHook = false;
     }
 
-    public void RetryGame()
-    {
-        
-        //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        //Debug.Log("GAME RESTARTED!");
-        
-
-    }
 }
