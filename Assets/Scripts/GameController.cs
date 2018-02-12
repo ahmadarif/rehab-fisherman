@@ -25,7 +25,8 @@ public class GameController : MonoBehaviour {
         ui_failed;
 
     public Text text_time, 
-        text_score, 
+        text_score,
+        text_finalScore, 
         text_step, 
         text_angle,
         text_fishCaught;
@@ -80,8 +81,9 @@ public class GameController : MonoBehaviour {
         }
         else
         {
-            SoundManager.PlaySound("game_win");
+            text_finalScore.text = "Score: " + text_score.text;
             gameover_ui.gameObject.SetActive(true);
+
         }
 
 
