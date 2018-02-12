@@ -50,6 +50,7 @@ public class GameController : MonoBehaviour {
         fishCaught = 0;
         angle = 0;
         score = 0;
+        Debug.Log("Cobain VS Code");
 
         //menentukan sudut tujuan. sementara ditentukan oleh nilai random
         setAngleTarget();
@@ -79,6 +80,7 @@ public class GameController : MonoBehaviour {
         }
         else
         {
+            SoundManager.PlaySound("game_win");
             gameover_ui.gameObject.SetActive(true);
         }
 
@@ -119,6 +121,7 @@ public class GameController : MonoBehaviour {
             else
             {
                 ui_failed.gameObject.SetActive(true);
+                SoundManager.PlaySound("failed");
                 moveFish.moveToTarget = false;
                 StartCoroutine(waitFor(1f));
 
@@ -169,6 +172,9 @@ public class GameController : MonoBehaviour {
             //tambah score
             addScore();
 
+            //suara dapet
+            SoundManager.PlaySound("strike");
+
             //set back everything to 0
             reset();
             setAngleTarget();
@@ -193,6 +199,8 @@ public class GameController : MonoBehaviour {
     {
 
         //set pullhand jadi 0
+        //Quaternion target = Quaternion.Euler(0,0, 340f);
+        //player.pullHand.transform.rotation = Quaternion.Slerp(player.pullHand.transform.rotation, target, 0);
         player.pullHand.transform.rotation = Quaternion.identity;
 
         //set anglePointer jadi 0
@@ -242,6 +250,7 @@ public class GameController : MonoBehaviour {
         
         //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         //Debug.Log("GAME RESTARTED!");
+        
 
     }
 }
