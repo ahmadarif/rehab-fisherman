@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
+
 public class GameController : MonoBehaviour {
 
     [SerializeField]
@@ -13,11 +15,14 @@ public class GameController : MonoBehaviour {
     public MoveFish moveFish;
 
     public GameObject fish,
-        gameover_ui;
+        gameover_ui,
+        time_ui;
 
-    public float currentTime;
-    public float speed;
-    public bool timeOn = true, 
+    public float currentTime,
+        speed;
+
+    public bool timeOn = true,
+        timeChallenge, 
         isAngleReached,
         onHook;
 
@@ -33,6 +38,7 @@ public class GameController : MonoBehaviour {
         text_fishCaught;
 
     private int current;
+
     int angle,
         angleTarget,
         fishCaught,
@@ -40,9 +46,6 @@ public class GameController : MonoBehaviour {
         currentLevel;
 
     int[] levelPoint;
-
-    //public int stepDistance = 5;
-    //public int maxStep = 10;
 
     // Use this for initialization
     void Start () {
@@ -52,11 +55,23 @@ public class GameController : MonoBehaviour {
         fishCaught = 0;
         angle = 0;
         score = 0;
-        Debug.Log("Cobain VS Code");
 
         //menentukan sudut tujuan. sementara ditentukan oleh nilai random
         setAngleTarget();
-        Debug.Log("Target Sekarang = " + angleTarget);
+
+        //Check is time on or off from PlayerPrefs("TimeOn") from Menu scene
+        string isTimeOn = PlayerPrefs.GetString("TimeOn");
+        
+        if (isTimeOn == "timeOnTrue")
+        {
+            Debug.Log("Pake Waktu");
+            timeChallenge = true;
+        }
+        else if(isTimeOn == "timeOnFalse")
+        {
+            Debug.Log("Tidak Pake Waktu");
+            timeChallenge = false;
+        }
 
         /*Instantiate Step
         for (int i = 0; i < maxStep; i++)
@@ -69,21 +84,16 @@ public class GameController : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-
-        //Pengulangan game sebanyak 10 kali
-        if(currentLevel <= 10)
+        if(timeChallenge == true)
         {
             
-            checkAngle();
+            PlayGameWithTime();
 
-            timeRun();
-            
-            updateFishOnHook();
         }
         else
         {
-            text_finalScore.text = "Score: " + text_score.text;
-            gameover_ui.gameObject.SetActive(true);
+            time_ui.SetActive(false);
+            PlayGameWithoutTime();
 
         }
 
@@ -97,6 +107,32 @@ public class GameController : MonoBehaviour {
 
         //time bar update
         
+    }
+
+    private void PlayGameWithoutTime()
+    {
+        time_ui.SetActive(false);
+        checkAngle();
+    }
+
+    private void PlayGameWithTime()
+    {
+        time_ui.SetActive(true);
+        //Pengulangan game sebanyak 10 kali
+        if (currentLevel <= 10)
+        {
+            checkAngle();
+
+            timeRun();
+
+            updateFishOnHook();
+        }
+        else
+        {
+            text_finalScore.text = "Score: " + text_score.text;
+            gameover_ui.gameObject.SetActive(true);
+
+        }
     }
 
     private void updateFishOnHook()
@@ -136,18 +172,23 @@ public class GameController : MonoBehaviour {
           //hentikan waktu
             timeOn = false;
 
-            //ikan revert ke tempat awayTarget
-            moveFish.transform.position = moveFish.awayTarget.position;
-
             Debug.Log("Sudut Tercapai! Lanjut Level. Target Sekarang: " + angleTarget);
             fishCaught++;
             text_fishCaught.text = fishCaught + "/10";
             isAngleReached = false;
 
-            player.myAnim.SetBool("pull", true);
-            StartCoroutine(waitFor(1f));
-
+            
         }
+
+    }
+
+    private void pullFishingRod()
+    {
+        player.myAnim.SetBool("pull", true);
+        StartCoroutine(waitFor(1f));
+
+        //ikan revert ke tempat awayTarget
+        moveFish.transform.position = moveFish.awayTarget.position;
 
     }
 
@@ -181,6 +222,9 @@ public class GameController : MonoBehaviour {
             //suara dapet
             SoundManager.PlaySound("strike");
 
+            //animasi tarik pancingan
+            pullFishingRod();
+
             //set back everything to 0
             reset();
             setAngleTarget();
@@ -197,23 +241,15 @@ public class GameController : MonoBehaviour {
 
     private void setAngleTarget()
     {
-        //sementara random
+        //sementara random *TODO : Implement Kalman Filter here
         angleTarget = UnityEngine.Random.RandomRange(50, 100);
         angleTarget_ui.transform.rotation = Quaternion.identity;
         angleTarget_ui.transform.Rotate(0, 0, -angleTarget);
-
-        //anglePointer.transform.Rotate(0, 0, pullSpeed);
 
     }
 
     private void reset()
     {
-
-        //set pullhand jadi 0
-        //Quaternion target = Quaternion.Euler(0,0, 340f);
-        //player.pullHand.transform.rotation = Quaternion.Slerp(player.pullHand.transform.rotation, target, 0);
-        //player.pullHand.transform.rotation = Quaternion.identity;
-
         //set anglePointer jadi 0
         player.anglePointer.transform.rotation = Quaternion.identity;
 
@@ -235,6 +271,7 @@ public class GameController : MonoBehaviour {
         Debug.Log("Nunggu selesai");
         currentLevel++;
     }
+
 
     IEnumerator waitFor(float duration)
     {
