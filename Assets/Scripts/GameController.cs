@@ -1,7 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using System;
 
 public class GameController : MonoBehaviour {
 
@@ -47,8 +46,14 @@ public class GameController : MonoBehaviour {
 
     int[] levelPoint;
 
+    // Kinect variables
+    private KinectManager manager;
+
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
+        // Get kinect instance
+        manager = KinectManager.Instance;
 
         currentLevel = 1;
         currentTime = 10;
@@ -72,41 +77,22 @@ public class GameController : MonoBehaviour {
             Debug.Log("Tidak Pake Waktu");
             timeChallenge = false;
         }
-
-        /*Instantiate Step
-        for (int i = 0; i < maxStep; i++)
-        {
-            Instantiate(stepObj, new Vector3(i * stepDistance, -2, 0), Quaternion.identity);
-            Debug.Log(stepObj.transform.position);
-
-        }*/
     }
 
     // Update is called once per frame
-    void Update () {
+    void Update ()
+    {
+        UpdateKinectUser();
+
         if(timeChallenge == true)
         {
-            
             PlayGameWithTime();
-
         }
         else
         {
             time_ui.SetActive(false);
             PlayGameWithoutTime();
-
         }
-
-
-        /*fish movement
-        if (fish[0].transform.position != target[current].position)
-        {
-            Vector3 pos = Vector3.MoveTowards(fish[0].transform.position, target[current].position, speed * Time.deltaTime);
-            fish[0].GetComponent<Rigidbody2D>().MovePosition(pos);
-        }*/
-
-        //time bar update
-        
     }
 
     private void PlayGameWithoutTime()
@@ -118,6 +104,7 @@ public class GameController : MonoBehaviour {
     private void PlayGameWithTime()
     {
         time_ui.SetActive(true);
+
         //Pengulangan game sebanyak 10 kali
         if (currentLevel <= 10)
         {
@@ -131,7 +118,6 @@ public class GameController : MonoBehaviour {
         {
             text_finalScore.text = "Score: " + text_score.text;
             gameover_ui.gameObject.SetActive(true);
-
         }
     }
 
@@ -155,7 +141,6 @@ public class GameController : MonoBehaviour {
                 currentTime -= Time.deltaTime;
                 text_time.text = System.Math.Round(currentTime).ToString();
                 bar_time.fillAmount -= Time.deltaTime * 0.1f;
-
             }
             else
             {
@@ -176,8 +161,6 @@ public class GameController : MonoBehaviour {
             fishCaught++;
             text_fishCaught.text = fishCaught + "/10";
             isAngleReached = false;
-
-            
         }
 
     }
@@ -189,12 +172,10 @@ public class GameController : MonoBehaviour {
 
         //ikan revert ke tempat awayTarget
         moveFish.transform.position = moveFish.awayTarget.position;
-
     }
 
     private void checkAngle()
     {
-        
         if (angle != angleTarget)
         {
             isAngleReached = false;
@@ -207,12 +188,10 @@ public class GameController : MonoBehaviour {
             {
                 angle++;
                 text_angle.text = angle.ToString();
-
             }
-
         }
-        else {
-
+        else
+        {
             isAngleReached = true;
             ui_strike.gameObject.SetActive(true);
 
@@ -228,9 +207,7 @@ public class GameController : MonoBehaviour {
             //set back everything to 0
             reset();
             setAngleTarget();
-
         }
-
     }
 
     private void addScore()
@@ -263,8 +240,6 @@ public class GameController : MonoBehaviour {
         currentTime = 10;
         text_time.text = System.Math.Round(currentTime).ToString();
         bar_time.fillAmount = currentTime * 10;
-        
-
 
         StartCoroutine(waitFor(1.0f));
 
@@ -272,10 +247,8 @@ public class GameController : MonoBehaviour {
         currentLevel++;
     }
 
-
     IEnumerator waitFor(float duration)
     {
-
         yield return new WaitForSeconds(duration);
         timeOn = true;
         //set line jadi panjang
@@ -285,14 +258,25 @@ public class GameController : MonoBehaviour {
         player.myAnim.SetBool("pull", false);
         ui_strike.gameObject.SetActive(false);
         ui_failed.gameObject.SetActive(false);
-
     }
 
     IEnumerator waitForFish(float duration)
     {
-
         yield return new WaitForSeconds(duration);
         onHook = false;
+    }
+
+    private void UpdateKinectUser() {
+        if(manager.IsUserDetected())
+        {
+            Debug.Log("User detected");
+
+            uint player = manager.GetPlayer1ID();
+        }
+        else
+        {
+            Debug.Log("User not detected");
+        }
     }
 
 }

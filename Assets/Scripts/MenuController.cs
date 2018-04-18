@@ -1,43 +1,22 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-
 
 public class MenuController : MonoBehaviour {
 
-    [SerializeField]
-    private GameObject tutorial,
-        selectArm,
-        back;
+    public GameObject tutorial;
+    public GameObject selectArm;
+    public GameObject back;
 
     public Toggle isTimeOnToggle;
 
-    void Start()
-    {
-        
+    void Start () {
+        PlayerPrefs.SetString("TimeOn", "timeOnTrue");
     }
-
-    void Update()
-    {
-        if (isTimeOnToggle.isOn)
-        {
-            Debug.Log("Toggle On");
-            PlayerPrefs.SetString("TimeOn", "timeOnTrue");
-
-        }
-        else
-        {
-            Debug.Log("Toggle Off");
-            PlayerPrefs.SetString("TimeOn", "timeOnFalse");
-        }
-    }
-
 
     public void LoadScene(string sceneName)
     {
         SoundManager.PlaySound("button_click");
         Application.LoadLevel(sceneName);
-
     }
 
     public void LoadTutorial()
@@ -62,9 +41,15 @@ public class MenuController : MonoBehaviour {
         back.SetActive(true);
     }
 
-    public void SetTimeOn()
+    public void ToggleTime()
     {
-
+        if (isTimeOnToggle.isOn)
+        {
+            PlayerPrefs.SetString("TimeOn", "timeOnTrue");
+        }
+        else
+        {
+            PlayerPrefs.SetString("TimeOn", "timeOnFalse");
+        }
     }
-
 }
