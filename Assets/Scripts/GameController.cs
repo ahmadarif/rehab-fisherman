@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,7 +35,8 @@ public class GameController : MonoBehaviour {
         text_finalScore, 
         text_step, 
         text_angle,
-        text_fishCaught;
+        text_fishCaught,
+        status_player;
 
     private int current;
 
@@ -269,13 +271,25 @@ public class GameController : MonoBehaviour {
     private void UpdateKinectUser() {
         if(manager.IsUserDetected())
         {
-            Debug.Log("User detected");
-
             uint player = manager.GetPlayer1ID();
+
+            Vector3 shoulder = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
+            Vector3 elbow = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
+            Vector3 wrist = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
+
+
+            Vector3 spine = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.Spine);
+            spine.x = shoulder.x;
+
+            if (Angle.isStraight(shoulder, elbow, wrist, 20)) {
+                status_player.text = Angle.calculate(spine, shoulder, elbow).ToString();
+            } else {
+                status_player.text = "TANGAN TIDAK LURUS";
+            }
         }
         else
         {
-            Debug.Log("User not detected");
+            status_player.text = "USER NOT DETECTED";
         }
     }
 
