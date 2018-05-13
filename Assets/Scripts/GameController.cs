@@ -97,7 +97,6 @@ public class GameController : MonoBehaviour {
     {
         UpdateKinectUser();
         PlayerKeyboard();
-
         Gameplay();
     }
 
