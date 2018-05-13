@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class GameController : MonoBehaviour {
 
     [SerializeField]
@@ -24,6 +25,7 @@ public class GameController : MonoBehaviour {
     public bool timeOn = true,
         timeChallenge, 
         isAngleReached,
+        isTargetToZero = false,
         onHook;
 
     public Image bar_time,
@@ -36,17 +38,24 @@ public class GameController : MonoBehaviour {
         text_step, 
         text_angle,
         text_fishCaught,
+        text_target,
         status_player;
 
     private int current;
 
-    int angle,
-        angleTarget,
-        fishCaught,
+    float currentAngle,
+        defaultTarget = 15,
+        angleTarget;
+
+    int fishCaught,
         score,
         currentLevel;
 
+    //double currentAngle;
+
     int[] levelPoint;
+
+    double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
 
     // Kinect variables
     private KinectManager manager;
@@ -60,10 +69,12 @@ public class GameController : MonoBehaviour {
         currentLevel = 1;
         currentTime = 10;
         fishCaught = 0;
-        angle = 0;
+        currentAngle = 0;
         score = 0;
 
-        //menentukan sudut tujuan. sementara ditentukan oleh nilai random
+        isTargetToZero = false;
+
+        //menentukan sudut tujuan
         setAngleTarget();
 
         //Check is time on or off from PlayerPrefs("TimeOn") from Menu scene
@@ -79,6 +90,12 @@ public class GameController : MonoBehaviour {
             Debug.Log("Tidak Pake Waktu");
             timeChallenge = false;
         }
+
+        bool isDebug = true;
+
+        // cek kalman filter
+        KalmanFilter kf = new KalmanFilter(data, isDebug);
+        double result = kf.process(0.1);
     }
 
     // Update is called once per frame
@@ -86,7 +103,7 @@ public class GameController : MonoBehaviour {
     {
         UpdateKinectUser();
 
-        if(timeChallenge == true)
+        if (timeChallenge == true)
         {
             PlayGameWithTime();
         }
@@ -95,6 +112,8 @@ public class GameController : MonoBehaviour {
             time_ui.SetActive(false);
             PlayGameWithoutTime();
         }
+
+        
     }
 
     private void PlayGameWithoutTime()
@@ -178,39 +197,68 @@ public class GameController : MonoBehaviour {
 
     private void checkAngle()
     {
-        if (angle != angleTarget)
+        float tempTarget;
+
+        if (!isTargetToZero)
+        {
+
+            tempTarget = angleTarget;
+            
+            angleTarget_ui.transform.rotation = Quaternion.identity;
+            angleTarget_ui.transform.Rotate(0, 0, Mathf.RoundToInt((float)-angleTarget));
+        }
+        else
+        {
+            tempTarget = defaultTarget;
+
+            angleTarget_ui.transform.rotation = Quaternion.identity;
+            angleTarget_ui.transform.Rotate(0, 0, Mathf.RoundToInt((float)-tempTarget));
+        }
+
+        Debug.Log("Temp Target: " + tempTarget + " | Is Target Zero: "+ isTargetToZero);
+        
+        if (currentAngle != tempTarget)
         {
             isAngleReached = false;
             if (Input.GetKey(KeyCode.DownArrow))
             {
-                angle--;
-                text_angle.text = angle.ToString();
+                currentAngle--;
+                text_angle.text = currentAngle.ToString();
             }
             else if (Input.GetKey(KeyCode.UpArrow))
             {
-                angle++;
-                text_angle.text = angle.ToString();
+                currentAngle++;
+                text_angle.text = currentAngle.ToString();
             }
         }
         else
         {
+            // TODO : masukan logika untuk menurunkan lengan
+            
+
             isAngleReached = true;
             ui_strike.gameObject.SetActive(true);
 
-            //tambah score
+            // tambah score
             addScore();
 
-            //suara dapet
+            // suara dapet
             SoundManager.PlaySound("strike");
 
-            //animasi tarik pancingan
+            // animasi tarik pancingan
             pullFishingRod();
 
-            //set back everything to 0
+            // set back everything to 0
             reset();
+
+            // revert menjadi titik awal
+            isTargetToZero = !isTargetToZero;
+
             setAngleTarget();
         }
     }
+
+    
 
     private void addScore()
     {
@@ -220,25 +268,35 @@ public class GameController : MonoBehaviour {
 
     private void setAngleTarget()
     {
-        //sementara random *TODO : Implement Kalman Filter here
+        // sementara random *TODO : Implement Kalman Filter here
+
+
+        // bulatkan menjadi 2 digit di belakang koma
+        // angleTarget = Math.Round(UnityEngine.Random.RandomRange(50f, 100f), 2, MidpointRounding.AwayFromZero);
+
+
+        // integer
         angleTarget = UnityEngine.Random.RandomRange(50, 100);
-        angleTarget_ui.transform.rotation = Quaternion.identity;
-        angleTarget_ui.transform.Rotate(0, 0, -angleTarget);
+
+
+        //currentAngle = Math.Round(Angle.calculate(spine, shoulder, elbow), 2, MidpointRounding.AwayFromZero);
 
     }
 
+   
+
     private void reset()
     {
-        //set anglePointer jadi 0
+        // set anglePointer jadi 0
         player.anglePointer.transform.rotation = Quaternion.identity;
 
         StartCoroutine(waitFor(1.0f));
 
-        //set angle dan text_angle jadi 0
-        angle = 0;
-        text_angle.text = angle.ToString();
+        // set angle dan text_angle jadi 0
+        currentAngle = 0;
+        text_angle.text = currentAngle.ToString();
 
-        //set waktu dan bar waktu jadi 10
+        // set waktu dan bar waktu jadi 10
         currentTime = 10;
         text_time.text = System.Math.Round(currentTime).ToString();
         bar_time.fillAmount = currentTime * 10;
@@ -253,7 +311,7 @@ public class GameController : MonoBehaviour {
     {
         yield return new WaitForSeconds(duration);
         timeOn = true;
-        //set line jadi panjang
+        // set line jadi panjang
         player.line.transform.localScale = new Vector3(1, 1f, 1);
         isAngleReached = false;
         moveFish.moveToTarget = true;
@@ -268,24 +326,58 @@ public class GameController : MonoBehaviour {
         onHook = false;
     }
 
+    public void LoadScene(string sceneName)
+    {
+        Application.LoadLevel(sceneName);
+    }
+    
+
+
+
     private void UpdateKinectUser() {
+        if(manager == null)
+        {
+            manager = KinectManager.Instance;
+        }
+
+        Debug.Log(manager == null);
+
         if(manager.IsUserDetected())
         {
-            uint player = manager.GetPlayer1ID();
+            uint kinectplayer = manager.GetPlayer1ID();
 
-            Vector3 shoulder = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
-            Vector3 elbow = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
-            Vector3 wrist = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
+            Vector3 shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
+            Vector3 elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
+            Vector3 wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
+            
+            Vector3 spine = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.Spine);
 
-
-            Vector3 spine = manager.GetJointPosition(player, (int)KinectWrapper.NuiSkeletonPositionIndex.Spine);
+            // mengubah titik spine selurus dengan shoulder
             spine.x = shoulder.x;
 
+            //cek apabila tangan lurus
             if (Angle.isStraight(shoulder, elbow, wrist, 20)) {
-                status_player.text = Angle.calculate(spine, shoulder, elbow).ToString();
+                //status_player.text = Angle.calculate(spine, shoulder, elbow).ToString();
+
+                // bulatkan menjadi 0 digit di belakang koma
+                currentAngle = Mathf.RoundToInt((float)Angle.calculate(spine, shoulder, elbow));
+
+                // bulatkan menjadi 2 digit di belakang koma
+                //currentAngle = Math.Round(Angle.calculate(spine, shoulder, elbow), 2, MidpointRounding.AwayFromZero);
+                
+                player.anglePointer.transform.localEulerAngles = new Vector3(0, 0, -currentAngle);
+
+                player.line.localScale -= new Vector3(0, 0.01f, 0);
+
+                status_player.text = currentAngle.ToString();
+                text_target.text = angleTarget.ToString();
+
+                text_angle.text = currentAngle.ToString();
+
             } else {
                 status_player.text = "TANGAN TIDAK LURUS";
             }
+            
         }
         else
         {
