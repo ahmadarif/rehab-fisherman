@@ -1,48 +1,70 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour {
 
-    public Transform line,
-        target,
-        anglePointer,
-        pullHand;
+    public Transform line;
+    public Transform target;
+    public Transform anglePointer;
+    public Transform pullHand;
     public Animator myAnim;
-    public GameController gameController;
-    public float pullSpeed = 1;
 
-    //public GameObject[] step;
+    private int pullSpeed = 1;
+    private int targetAngle;
+    private int currentAngle;
+    private float hooksScale;
 
-	// Use this for initialization
 	void Start () {
         myAnim = GetComponent<Animator>();
-        gameController = new GameController();
     }
-	
-	// Update is called once per frame
-	void Update () {
-        
+
+	void Update ()
+    {
+        KeyboardInput();
+        UpdateHooksUI();
+    }
+
+    public void SetTargetAngle(int target)
+    {
+        targetAngle = target;
+    }
+
+    public void SetCurrentAngle (int angle)
+    {
+        currentAngle = angle;
+    }
+
+    private void KeyboardInput ()
+    {
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            line.localScale += new Vector3(0, 0.01f, 0);
-            //putar turun gauge sesuai dengan angkatan tangan
             anglePointer.transform.Rotate(0, 0, pullSpeed);
-            //pullHand.transform.Rotate(0, 0, -pullSpeed);
         }
         else if (Input.GetKey(KeyCode.UpArrow))
         {
-            line.localScale -= new Vector3(0, 0.01f, 0);
-            //putar naik gauge sesuai dengan angkatan tangan
             anglePointer.transform.Rotate(0, 0, -pullSpeed);
-            //pullHand.transform.Rotate(0, 0, pullSpeed);
         }
+
+        BoundaryFishhook();
     }
 
-    public IEnumerator Wait(float duration)
+    private void BoundaryFishhook ()
     {
-        Debug.Log("Wait for: "+duration+"s");
-        yield return new WaitForSeconds(duration);
+        if (anglePointer.transform.eulerAngles.z > 90 && anglePointer.transform.eulerAngles.z < 180)
+        {
+            anglePointer.transform.eulerAngles = new Vector3(0, 0, 180);
+        }
+        if (anglePointer.transform.eulerAngles.z > 0 && anglePointer.transform.eulerAngles.z <= 90)
+        {
+            anglePointer.transform.eulerAngles = new Vector3(0, 0, 0);
+        }
+
+        currentAngle = 360 - Mathf.RoundToInt(anglePointer.transform.eulerAngles.z);
+        if (currentAngle == 360) currentAngle = 0;
+    }
+
+    private void UpdateHooksUI()
+    {
+        hooksScale = 1.0f - ((float)currentAngle / (float)targetAngle);
+        line.transform.localScale = new Vector3(1, hooksScale, 0);
     }
 }
