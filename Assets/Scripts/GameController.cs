@@ -327,7 +327,7 @@ public class GameController : MonoBehaviour {
             {
                 status_player.text = "USER NOT DETECTED";
             }
-        } catch (Exception e) {
+        } catch {
             status_player.text = "Kinect Error: Please plug the kinect device";
         }
     }
