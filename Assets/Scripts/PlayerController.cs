@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour {
 
     private void KeyboardInput ()
     {
+        if (GameController.CurrentStatus != Status.PLAYING && GameController.CurrentStatus != Status.PLAYING_RESET) return;
         if (Input.GetKey(KeyCode.DownArrow))
         {
             anglePointer.transform.Rotate(0, 0, pullSpeed);

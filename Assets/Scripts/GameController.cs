@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +26,6 @@ public class GameController : MonoBehaviour {
     public bool isAngleReached;
     public bool onHook;
     public bool isTargetZero = false;
-    public bool isAnimTargetRun = false;
 
     public Image bar_time;
     public Image ui_strike;
@@ -60,7 +58,7 @@ public class GameController : MonoBehaviour {
     double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
 
     private KinectManager manager;
-    private bool isAnimResetTarget;
+    public static Status CurrentStatus = Status.START;
 
     void Start ()
     {
@@ -106,10 +104,11 @@ public class GameController : MonoBehaviour {
 
     private void Gameplay ()
     {
-        //checkAngle();
-
         if (currentLevel <= 10)
         {
+            checkAngle();
+            checkAngleReset();
+
             if (timeChallenge == true)
             {
                 PlayGameWithTime();
@@ -141,7 +140,7 @@ public class GameController : MonoBehaviour {
 
         //angleTarget_ui.transform.Rotate(0, 0, 1 * cobaSmooth);
         //StartCoroutine(AnimResetTarget());
-        checkAngle();
+//        checkAngle();
     }
 
     private void PlayGameWithTime()
@@ -202,10 +201,14 @@ public class GameController : MonoBehaviour {
         moveFish.transform.position = moveFish.awayTarget.position;
     }
 
+    // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
     private void checkAngle()
     {
+        if (CurrentStatus != Status.PLAYING) return;
+
         if (currentAngle == angleTarget)
         {
+            CurrentStatus = Status.ANIM_TARGET;
             isAngleReached = true;
             ui_strike.gameObject.SetActive(true);
 
@@ -219,13 +222,21 @@ public class GameController : MonoBehaviour {
             pullFishingRod();
 
             // set back everything to 0
+            angleTargetUI = 0;
 
             StartCoroutine(AnimResetTarget());
-            reset();
+        }
+    }
 
+    // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
+    private void checkAngleReset()
+    {
+        if (CurrentStatus != Status.PLAYING_RESET) return;
+
+        if (currentAngle < 20)
+        {
+            CurrentStatus = Status.ANIM_TARGET;
             setAngleTarget();
-
-
         }
     }
 
@@ -250,9 +261,6 @@ public class GameController : MonoBehaviour {
 
     private void reset()
     {
-        // set anglePointer jadi 0
-        //player.anglePointer.transform.rotation = Quaternion.identity;
-
         StartCoroutine(waitFor(1.0f));
 
         // set angle dan text_angle jadi 0
@@ -268,7 +276,6 @@ public class GameController : MonoBehaviour {
 
         Debug.Log("Nunggu selesai");
         currentLevel++;
-
     }
 
     IEnumerator waitFor(float duration)
@@ -345,10 +352,9 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    // memposisikan target sesuai dengan sudut target
     IEnumerator AnimSetTarget()
     {
-        angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, 0);
-        isAnimTargetRun = true;
         bool arrived = false;
         float smooth = Time.deltaTime * 100;
 
@@ -357,37 +363,30 @@ public class GameController : MonoBehaviour {
             angleTarget_ui.transform.Rotate(0, 0, -1 * smooth);
             if (angleTarget_ui.transform.eulerAngles.z <= angleTargetUI)
             {
+                CurrentStatus = Status.PLAYING;
                 angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, angleTargetUI);
-                isAnimTargetRun = false;
                 arrived = true;
             }
             yield return null;
         }
     }
 
+    // memposisikan target ke sudut 0
     IEnumerator AnimResetTarget()
     {
-
-        angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, angleTargetUI);
-        isAnimResetTarget = true;
         bool arrived = false;
         float smooth = Time.deltaTime * 100;
-        
+
         while (!arrived)
         {
-            angleTarget_ui.transform.Rotate(0, 0, 1);
-
-            if (angleTarget_ui.transform.eulerAngles.z != 0)
+            angleTarget_ui.transform.Rotate(0, 0, 1 * smooth);
+            if (angleTarget_ui.transform.eulerAngles.z > 0 && angleTarget_ui.transform.eulerAngles.z < 10)
             {
                 angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, 0);
-
-                isAnimResetTarget = false;
                 arrived = true;
-
-                Debug.Log("AnimeResetTarget Executed");
+                CurrentStatus = Status.PLAYING_RESET;
             }
             yield return null;
         }
-
     }
 }
