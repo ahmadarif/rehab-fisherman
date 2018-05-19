@@ -20,7 +20,7 @@ public class Api : MonoBehaviour {
 
         yield return www;
         var reader = new JsonReader();
-        dynamic output = reader.Read(www.text);
+        //dynamic output = reader.Read(www.text);
 
         //Debug.Log(output);
 

@@ -44,8 +44,9 @@ public class GameController : MonoBehaviour {
 
     private int current;
 
-    float currentAngle;
-    float defaultTarget = 15;
+    float currentAngle,
+        defaultTarget = 15,
+        cobaSmooth;
 
     int angleTarget;
     int angleTargetUI;
@@ -59,6 +60,7 @@ public class GameController : MonoBehaviour {
     double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
 
     private KinectManager manager;
+    private bool isAnimResetTarget;
 
     void Start ()
     {
@@ -70,6 +72,8 @@ public class GameController : MonoBehaviour {
         fishCaught = 0;
         currentAngle = 0;
         score = 0;
+
+        cobaSmooth = Time.deltaTime * 100;
 
         // menentukan sudut tujuan
         setAngleTarget();
@@ -102,7 +106,7 @@ public class GameController : MonoBehaviour {
 
     private void Gameplay ()
     {
-        checkAngle();
+        //checkAngle();
 
         if (currentLevel <= 10)
         {
@@ -132,7 +136,11 @@ public class GameController : MonoBehaviour {
 
     private void PlayGameWithoutTime()
     {
+
         time_ui.SetActive(false);
+
+        //angleTarget_ui.transform.Rotate(0, 0, 1 * cobaSmooth);
+        //StartCoroutine(AnimResetTarget());
         checkAngle();
     }
 
@@ -211,9 +219,13 @@ public class GameController : MonoBehaviour {
             pullFishingRod();
 
             // set back everything to 0
+
+            StartCoroutine(AnimResetTarget());
             reset();
 
             setAngleTarget();
+
+
         }
     }
 
@@ -226,7 +238,7 @@ public class GameController : MonoBehaviour {
     private void setAngleTarget()
     {
         // random
-        angleTarget = UnityEngine.Random.Range(50, 180);
+        angleTarget = UnityEngine.Random.Range(50, 100);
 
         // set target angle
         player.SetTargetAngle(angleTarget);
@@ -239,7 +251,7 @@ public class GameController : MonoBehaviour {
     private void reset()
     {
         // set anglePointer jadi 0
-        player.anglePointer.transform.rotation = Quaternion.identity;
+        //player.anglePointer.transform.rotation = Quaternion.identity;
 
         StartCoroutine(waitFor(1.0f));
 
@@ -256,6 +268,7 @@ public class GameController : MonoBehaviour {
 
         Debug.Log("Nunggu selesai");
         currentLevel++;
+
     }
 
     IEnumerator waitFor(float duration)
@@ -336,7 +349,6 @@ public class GameController : MonoBehaviour {
     {
         angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, 0);
         isAnimTargetRun = true;
-
         bool arrived = false;
         float smooth = Time.deltaTime * 100;
 
@@ -355,16 +367,27 @@ public class GameController : MonoBehaviour {
 
     IEnumerator AnimResetTarget()
     {
+
+        angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, angleTargetUI);
+        isAnimResetTarget = true;
         bool arrived = false;
+        float smooth = Time.deltaTime * 100;
+        
         while (!arrived)
         {
             angleTarget_ui.transform.Rotate(0, 0, 1);
+
             if (angleTarget_ui.transform.eulerAngles.z != 0)
             {
                 angleTarget_ui.transform.eulerAngles = new Vector3(0, 0, 0);
+
+                isAnimResetTarget = false;
                 arrived = true;
+
+                Debug.Log("AnimeResetTarget Executed");
             }
             yield return null;
         }
+
     }
 }
