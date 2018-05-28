@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,22 +17,16 @@ public class GameController : MonoBehaviour {
 
     public GameObject fish;
     public GameObject gameover_ui;
-    public GameObject time_ui;
-
-    public float currentTime;
+    
     public float speed;
-
-    public bool timeOn = true;
-    public bool timeChallenge;
+    
     public bool isAngleReached;
     public bool onHook;
     public bool isTargetZero = false;
-
-    public Image bar_time;
+    
     public Image ui_strike;
     public Image ui_failed;
-
-    public Text text_time;
+    
     public Text text_score;
     public Text text_finalScore;
     public Text text_step;
@@ -46,6 +41,8 @@ public class GameController : MonoBehaviour {
         defaultTarget = 15,
         cobaSmooth;
 
+    float maxAngle;
+
     int angleTarget;
     int angleTargetUI;
 
@@ -58,6 +55,7 @@ public class GameController : MonoBehaviour {
     double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
 
     private KinectManager manager;
+    public Api cobaApi;
     public static Status CurrentStatus = Status.START;
 
     void Start ()
@@ -65,30 +63,21 @@ public class GameController : MonoBehaviour {
         // Get kinect instance
         manager = KinectManager.Instance;
 
+
+        // Set max angle
+        maxAngle = 0;
+
         currentLevel = 1;
-        currentTime = 10;
         fishCaught = 0;
         currentAngle = 0;
         score = 0;
+
 
         cobaSmooth = Time.deltaTime * 100;
 
         // menentukan sudut tujuan
         setAngleTarget();
-
-        //Check is time on or off from PlayerPrefs("TimeOn") from Menu scene
-        string isTimeOn = PlayerPrefs.GetString("TimeOn");
         
-        if (isTimeOn == "timeOnTrue")
-        {
-            Debug.Log("Pake Waktu");
-            timeChallenge = true;
-        }
-        else if(isTimeOn == "timeOnFalse")
-        {
-            Debug.Log("Tidak Pake Waktu");
-            timeChallenge = false;
-        }
 
         // cek kalman filter
 //        KalmanFilter kf = new KalmanFilter(data, isDebug);
@@ -97,9 +86,21 @@ public class GameController : MonoBehaviour {
 
     void Update ()
     {
+
+        CheckMaxAngle();
         UpdateKinectUser();
         PlayerKeyboard();
         Gameplay();
+    }
+
+    private void CheckMaxAngle()
+    {
+        if (currentAngle > maxAngle)
+        {
+            maxAngle = currentAngle;
+        }
+        Debug.Log("Max Angle: " + maxAngle + "| Angle Target: "+ angleTarget);
+
     }
 
     private void Gameplay ()
@@ -108,16 +109,7 @@ public class GameController : MonoBehaviour {
         {
             checkAngle();
             checkAngleReset();
-
-            if (timeChallenge == true)
-            {
-                PlayGameWithTime();
-            }
-            else
-            {
-                time_ui.SetActive(false);
-                PlayGameWithoutTime();
-            }
+            
         }
         else
         {
@@ -133,23 +125,6 @@ public class GameController : MonoBehaviour {
         text_angle.text = currentAngle.ToString();
     }
 
-    private void PlayGameWithoutTime()
-    {
-
-        time_ui.SetActive(false);
-
-        //angleTarget_ui.transform.Rotate(0, 0, 1 * cobaSmooth);
-        //StartCoroutine(AnimResetTarget());
-//        checkAngle();
-    }
-
-    private void PlayGameWithTime()
-    {
-        time_ui.SetActive(true);
-
-        timeRun();
-        updateFishOnHook();
-    }
 
     private void updateFishOnHook()
     {
@@ -159,38 +134,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    private void timeRun()
-    {
-        if (timeOn == true && isAngleReached == false)
-        {
-            if (currentTime >= 0)
-            {
-                currentTime -= Time.deltaTime;
-                text_time.text = System.Math.Round(currentTime).ToString();
-                bar_time.fillAmount -= Time.deltaTime * 0.1f;
-            }
-            else
-            {
-                ui_failed.gameObject.SetActive(true);
-                moveFish.moveToTarget = false;
-                SoundManager.PlaySound("failed");
-                StartCoroutine(waitFor(1f));
-
-                reset();
-            }
-        }
-        else if (timeOn == true && isAngleReached == true)
-        {
-            Debug.Log("Sudut Tercapai! Lanjut Level. Target Sekarang: " + angleTarget);
-
-            // hentikan waktu
-            timeOn = false;
-
-            fishCaught++;
-            text_fishCaught.text = fishCaught + "/10";
-            isAngleReached = false;
-        }
-    }
+    
 
     private void pullFishingRod()
     {
@@ -204,27 +148,46 @@ public class GameController : MonoBehaviour {
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
     private void checkAngle()
     {
+        
         if (CurrentStatus != Status.PLAYING) return;
 
         if (currentAngle == angleTarget)
         {
-            CurrentStatus = Status.ANIM_TARGET;
             isAngleReached = true;
             ui_strike.gameObject.SetActive(true);
-
-            // tambah score
-            addScore();
 
             // suara dapet
             SoundManager.PlaySound("strike");
 
+            // TODO : kasih UI Text : "Kamu boleh turun"
+
+
+            //StartCoroutine(AnimResetTarget());
+        }
+
+        if (isAngleReached && currentAngle < 20)
+        {
+            CurrentStatus = Status.ANIM_TARGET;
+
+            //TODO : POST max angle to database here
+			cobaApi.HitHistories("ecky","left",angleTarget.ToString(),maxAngle.ToString());
+			Debug.Log ("Executed!");
+
+            // tambah score
+            addScore();
+
             // animasi tarik pancingan
             pullFishingRod();
-
+            
             // set back everything to 0
             angleTargetUI = 0;
 
+
+            // set maxAngle to 0
+            maxAngle = 0;
+
             StartCoroutine(AnimResetTarget());
+            
         }
     }
 
@@ -242,7 +205,7 @@ public class GameController : MonoBehaviour {
 
     private void addScore()
     {
-        score = score + (int)currentTime * 100;
+        score = score + 1000;
         text_score.text = score.ToString();
     }
 
@@ -267,11 +230,6 @@ public class GameController : MonoBehaviour {
         currentAngle = 0;
         text_angle.text = currentAngle.ToString();
 
-        // set waktu dan bar waktu jadi 10
-        currentTime = 10;
-        text_time.text = System.Math.Round(currentTime).ToString();
-        bar_time.fillAmount = currentTime * 10;
-
         StartCoroutine(waitFor(1.0f));
 
         Debug.Log("Nunggu selesai");
@@ -281,7 +239,6 @@ public class GameController : MonoBehaviour {
     IEnumerator waitFor(float duration)
     {
         yield return new WaitForSeconds(duration);
-        timeOn = true;
         // set line jadi panjang
         player.line.transform.localScale = new Vector3(1, 1f, 1);
         isAngleReached = false;
