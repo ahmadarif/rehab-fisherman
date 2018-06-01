@@ -80,6 +80,7 @@ public class Api : MonoBehaviour {
                 else
                 {
                     Debug.Log("Berhasil Parsing JSON");
+                    Debug.Log("Username: "+ username +" Hand: " +hand);
                     Debug.Log(token);
 
 					bulkData = (ArrayList) token["data"];
@@ -99,14 +100,6 @@ public class Api : MonoBehaviour {
 						predictionData[i] = (int) dataHistories[i]["prediction"];
 					}
 
-
-					/*
-                    idDB = token["id"].ToString();
-                    usernameDB = token["username"].ToString();
-                    handDB = token["hand"].ToString();
-                    predictionDB = token["prediction"].ToString();
-                    actualDB = token["actual"].ToString();
-                    */
                 }
             }
         );
@@ -115,24 +108,10 @@ public class Api : MonoBehaviour {
         yield return null;
     }
 
-    public void AmbilData()
+    public void AmbilData(string shoulder)
     {
-        cobaApi.StartCoroutine(GetHistories("ecky","left"));
+		string username = PlayerPrefs.GetString ("username");
+        cobaApi.StartCoroutine(GetHistories(username, shoulder));
     }
-
-//	public ArrayList ExtractBulkPrediction(){
-//
-//		ArrayList tmp = cobaApi.ExtractBulkPredictionData ();
-//		Debug.Log ("Masuk ExtractBulkPredict");
-//		return tmp;
-//	}
-
-//	public ArrayList ExtractBulkActual(){
-//		ArrayList tmp = cobaApi.ExtractBulkActualData();
-//		Debug.Log ("Masuk ExtractBulkActual");
-//		return tmp;
-//	}
-
-
 
 }

@@ -26,7 +26,7 @@ public class KalmanFilter {
     {
         double xl, pl;
 
-        if (isDebug) Debug.Log(string.Format("# | val \t\t| xl \t\t| pl \t\t| K \t\t| x2 \t\t| p2"));
+        //if (isDebug) Debug.Log(string.Format("# | val \t\t| xl \t\t| pl \t\t| K \t\t| x2 \t\t| p2"));
 
         for (int i = 0; i < Zk.Length; i++)
         {
@@ -50,11 +50,12 @@ public class KalmanFilter {
             Xk[i] = Xk[i] + Kk[i] * (Zk[i] - Xk[i]);
             Pk[i] = (1 - Kk[i]) * Pk[i];
 
-            if (isDebug) Debug.Log(string.Format("{0} | {1} \t| {2} \t| {3} \t| {4} \t| {5} \t| {6} \n ", i + 1, Zk[i], xl, pl, Kk[i], Xk[i], Pk[i]));
+            //if (isDebug) Debug.Log(string.Format("{0} | {1} \t| {2} \t| {3} \t| {4} \t| {5} \t| {6} \n ", i + 1, Zk[i], xl, pl, Kk[i], Xk[i], Pk[i]));
 
         }
 
         return Xk[Zk.Length - 1];
+        
     }
 
     

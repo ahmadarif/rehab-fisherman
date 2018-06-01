@@ -1,22 +1,30 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Collections;
+using System.Collections.Generic;
 
 public class MenuController : MonoBehaviour {
 
     public GameObject tutorial;
     public GameObject selectArm;
-    public GameObject back;
-
+	public GameObject back;
+	public GameObject signInForm;
+    public Text text_username;
     public Toggle isTimeOnToggle;
 
     void Start () {
-        PlayerPrefs.SetString("TimeOn", "timeOnTrue");
-    }
 
-    public void LoadScene(string sceneName)
-    {
-        SoundManager.PlaySound("button_click");
-        Application.LoadLevel(sceneName);
+		string username = PlayerPrefs.GetString("username");
+
+        PlayerPrefs.SetInt("toggleShoulder", 0);
+
+		if (string.IsNullOrEmpty(username)) {
+			signInForm.SetActive (true);
+		} else {
+			signInForm.SetActive (false);
+            text_username.text = "Welcome back, " + username;
+		}
     }
 
     public void LoadTutorial()
@@ -52,4 +60,20 @@ public class MenuController : MonoBehaviour {
             PlayerPrefs.SetString("TimeOn", "timeOnFalse");
         }
     }
+
+	public void SelectRightShoulder(){
+		PlayerPrefs.SetString ("shoulder","right");
+	}
+
+	public void SelectLeftShoulder(){
+		PlayerPrefs.SetString ("shoulder","left");
+	}
+
+	public void Logout(){
+		PlayerPrefs.SetString ("username", null);
+		signInForm.SetActive (true);
+	}
+
+    
+
 }

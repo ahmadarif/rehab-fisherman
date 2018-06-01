@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -20,6 +21,7 @@ public class LineGraphManager : MonoBehaviour {
 	public Material greenmat;
 
 	public Text topValue;
+    public Text shoulderStatus;
 
 	public List<GraphData> graphDataPlayer1 = new List<GraphData>();
 	public List<GraphData> graphDataPlayer2 = new List<GraphData>();
@@ -40,26 +42,56 @@ public class LineGraphManager : MonoBehaviour {
 	public int[] actualData;
 	public int[] predictionData;
 
+    public string shoulder ;
 
+    public Button buttonShoulder;
+    
 	void Start(){
-		
-		//get data
-		AmbilData();
 
+        shoulder = "left";
+        shoulderStatus.text = shoulder;
+        buttonShoulder.GetComponentInChildren<Text>().text = "right";
+        //get data
+        AmbilData();
+        
 	}
 
 	public void AmbilData(){
 		StartCoroutine(ImportData());
 	}
 
+    public void ToggleShoulder()
+    {
+        graphDataPlayer1.Clear();
+        graphDataPlayer2.Clear();
+        if (shoulder == "left")
+        {            
+            shoulder = "right";
+            buttonShoulder.GetComponentInChildren<Text>().text = "right";
+            AmbilData();
+
+        }
+        else if (shoulder == "right")
+        {
+            shoulder = "left";
+            buttonShoulder.GetComponentInChildren<Text>().text = "left";
+            AmbilData();
+        }
+
+        shoulderStatus.text = shoulder;
+    }
+
 	public IEnumerator ImportData(){
-		cobaApi.AmbilData();
+
+        buttonShoulder.interactable = false;
+        Debug.Log(" Shoulder: " + shoulder);
+        cobaApi.AmbilData(shoulder);
 		Debug.Log ("Ambil Data");
 		yield return new WaitForSeconds(2f);
 		actualData = cobaApi.actualData;
 		predictionData = cobaApi.predictionData;
 
-		// adding random data
+		// adding data from database
 		int index = actualData.Length;
 
 		for(int i = 0; i < index; i++){
@@ -75,9 +107,10 @@ public class LineGraphManager : MonoBehaviour {
 
 		// showing graph
 		ShowGraph();
+        buttonShoulder.interactable = true;
 
 
-	}
+    }
 
 	public void ShowData(GraphData[] gdlist,int playerNum,float gap) {
 

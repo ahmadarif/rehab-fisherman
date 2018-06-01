@@ -46,11 +46,15 @@ public class GameController : MonoBehaviour {
     int angleTarget;
     int angleTargetUI;
 
+
     int fishCaught;
     int score;
     int currentLevel;
+	int[] levelPoint;
+    double[] actuals;
 
-    int[] levelPoint;
+    string username;
+	string shoulderType;
 
     double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
 
@@ -60,6 +64,11 @@ public class GameController : MonoBehaviour {
 
     void Start ()
     {
+		// Set player
+		username = PlayerPrefs.GetString("username");
+		shoulderType = PlayerPrefs.GetString ("shoulder");
+
+
         // Get kinect instance
         manager = KinectManager.Instance;
 
@@ -169,9 +178,8 @@ public class GameController : MonoBehaviour {
         {
             CurrentStatus = Status.ANIM_TARGET;
 
-            //TODO : POST max angle to database here
-			cobaApi.HitHistories("ecky","left",angleTarget.ToString(),maxAngle.ToString());
-			Debug.Log ("Executed!");
+            // POST max angle to database here
+			cobaApi.HitHistories(username,shoulderType,angleTarget.ToString(),maxAngle.ToString());
 
             // tambah score
             addScore();
@@ -214,12 +222,48 @@ public class GameController : MonoBehaviour {
         // random
         angleTarget = UnityEngine.Random.Range(50, 100);
 
+        // kalman filter
+        //AmbilData();
+
         // set target angle
         player.SetTargetAngle(angleTarget);
 
         // animasi set target
         angleTargetUI = 360 - angleTarget;
         StartCoroutine(AnimSetTarget());
+    }
+
+    IEnumerator ImportData()
+    {
+        cobaApi.AmbilData(shoulderType);
+        //yield return new WaitForSeconds(5f);
+        yield return null;
+
+        actuals = new double[cobaApi.actualData.Length];
+        
+        Debug.Log("Data diambil! | " + shoulderType);
+
+        bool isDebug = true;
+        for (int i = 0; i < cobaApi.actualData.Length; i++)
+        {
+            actuals[i] = (double) cobaApi.actualData[i];
+        }
+
+        KalmanFilter kf = new KalmanFilter(actuals, isDebug);
+        double result = kf.process(0.1);
+
+        //angleTarget = (int)result;
+
+        Debug.Log("Hasil Prediksi: " + angleTarget);
+        Debug.Log("Kalman Executed!");
+        
+
+    }
+
+    public void AmbilData()
+    {
+        StartCoroutine(ImportData());
+
     }
 
     private void reset()
@@ -254,11 +298,7 @@ public class GameController : MonoBehaviour {
         onHook = false;
     }
 
-    public void LoadScene(string sceneName)
-    {
-        Application.LoadLevel(sceneName);
-    }
-
+    
     private void UpdateKinectUser()
     {
         try
@@ -266,12 +306,28 @@ public class GameController : MonoBehaviour {
             if (manager == null) manager = KinectManager.Instance;
             if (manager.IsUserDetected())
             {
+				Debug.Log(shoulderType);
                 uint kinectplayer = manager.GetPlayer1ID();
+				Vector3 shoulder = new Vector3();
+				Vector3 elbow = new Vector3();
+				Vector3 wrist = new Vector3();
 
-                Vector3 shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
-                Vector3 elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
-                Vector3 wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
 
+				if (shoulderType == "right") {
+					//setShoulderRight(kinectplayer, shoulder, elbow, wrist);
+					shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderRight);
+					elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowRight);
+					wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristRight);
+
+				}
+				else if (shoulderType == "left") {
+					//setShoulderLeft(kinectplayer, shoulder, elbow, wrist);
+					shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
+					elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
+					wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
+					
+				}
+                
                 Vector3 spine = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.Spine);
 
                 // mengubah titik spine selurus dengan shoulder
@@ -346,4 +402,17 @@ public class GameController : MonoBehaviour {
             yield return null;
         }
     }
+
+	public void setShoulderRight(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
+		shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderRight);
+		elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowRight);
+		wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristRight);
+	}
+
+	public void setShoulderLeft(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
+		shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
+		elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
+		wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
+	}
+
 }
