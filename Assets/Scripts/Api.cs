@@ -80,11 +80,11 @@ public class Api : MonoBehaviour {
                 else
                 {
                     Debug.Log("Berhasil Parsing JSON");
-                    Debug.Log("Username: "+ username +" Hand: " +hand);
-                    Debug.Log(token);
+                    //Debug.Log("Username: "+ username +" Hand: " +hand);
+                    //Debug.Log(token);
 
 					bulkData = (ArrayList) token["data"];
-					Debug.Log(bulkData.Count);
+					Debug.Log("Jumlah Data di DB: " +bulkData.Count);
 
 					dataHistories = new Hashtable[bulkData.Count];
 

@@ -7,11 +7,9 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour {
 
     [SerializeField]
-    public Transform stepObj;
     public Transform caughtTarget;
     public Transform angleTarget_ui;
-
-    public Transform[] target;
+    
     public PlayerController player;
     public MoveFish moveFish;
 
@@ -20,13 +18,15 @@ public class GameController : MonoBehaviour {
     
     public float speed;
     
-    public bool isAngleReached;
+    public bool isAngleReached = false;
     public bool onHook;
     public bool isTargetZero = false;
+    public bool start;
     
     public Image ui_strike;
     public Image ui_failed;
-    
+    public Image ui_passit;
+
     public Text text_score;
     public Text text_finalScore;
     public Text text_step;
@@ -44,6 +44,7 @@ public class GameController : MonoBehaviour {
     float maxAngle;
 
     int angleTarget;
+    int angleTargetAwal;
     int angleTargetUI;
 
 
@@ -55,23 +56,24 @@ public class GameController : MonoBehaviour {
 
     string username;
 	string shoulderType;
-
-    double[] data = { 40, 45, 46, 57, 58, 54, 56, 57, 58, 60 };
-
+    
     private KinectManager manager;
     public Api cobaApi;
     public static Status CurrentStatus = Status.START;
+    private double result;
+    private bool handLifted;
 
     void Start ()
     {
+
+        isAngleReached = false;
+
 		// Set player
 		username = PlayerPrefs.GetString("username");
 		shoulderType = PlayerPrefs.GetString ("shoulder");
 
-
         // Get kinect instance
         manager = KinectManager.Instance;
-
 
         // Set max angle
         maxAngle = 0;
@@ -81,25 +83,31 @@ public class GameController : MonoBehaviour {
         currentAngle = 0;
         score = 0;
 
-
         cobaSmooth = Time.deltaTime * 100;
 
         // menentukan sudut tujuan
-        setAngleTarget();
-        
+        SetAngleTarget();
 
-        // cek kalman filter
-//        KalmanFilter kf = new KalmanFilter(data, isDebug);
-//        double result = kf.process(0.1);
+        Debug.Log("IsAngleReached Old: " + isAngleReached);
+        
     }
 
     void Update ()
     {
 
-        CheckMaxAngle();
         UpdateKinectUser();
+        CheckMaxAngle();
+        CheckHandLifting();
         PlayerKeyboard();
         Gameplay();
+    }
+
+    private void CheckHandLifting()
+    {
+        if (currentAngle > 20)
+        {
+            handLifted = true;
+        }
     }
 
     private void CheckMaxAngle()
@@ -108,7 +116,6 @@ public class GameController : MonoBehaviour {
         {
             maxAngle = currentAngle;
         }
-        Debug.Log("Max Angle: " + maxAngle + "| Angle Target: "+ angleTarget);
 
     }
 
@@ -116,8 +123,8 @@ public class GameController : MonoBehaviour {
     {
         if (currentLevel <= 10)
         {
-            checkAngle();
-            checkAngleReset();
+            CheckAngle();
+            CheckAngleReset();
             
         }
         else
@@ -134,28 +141,17 @@ public class GameController : MonoBehaviour {
         text_angle.text = currentAngle.ToString();
     }
 
-
-    private void updateFishOnHook()
-    {
-        if (onHook)
-        {
-            StartCoroutine(waitForFish(3.0f));
-        }
-    }
-
-    
-
-    private void pullFishingRod()
+    private void PullFishingRod()
     {
         player.myAnim.SetBool("pull", true);
-        StartCoroutine(waitFor(1f));
+        StartCoroutine(WaitFor(1f));
 
         //ikan revert ke tempat awayTarget
         moveFish.transform.position = moveFish.awayTarget.position;
     }
 
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
-    private void checkAngle()
+    private void CheckAngle()
     {
         
         if (CurrentStatus != Status.PLAYING) return;
@@ -163,33 +159,40 @@ public class GameController : MonoBehaviour {
         if (currentAngle == angleTarget)
         {
             isAngleReached = true;
-            ui_strike.gameObject.SetActive(true);
+
+            // kasih UI Text : "Can You Pass it?"
+            ui_passit.gameObject.SetActive(true);
 
             // suara dapet
             SoundManager.PlaySound("strike");
-
-            // TODO : kasih UI Text : "Kamu boleh turun"
-
 
             //StartCoroutine(AnimResetTarget());
         }
 
         if (isAngleReached && currentAngle < 20)
         {
+
             CurrentStatus = Status.ANIM_TARGET;
 
-            // POST max angle to database here
-			cobaApi.HitHistories(username,shoulderType,angleTarget.ToString(),maxAngle.ToString());
+            ui_strike.gameObject.SetActive(true);
 
+            // suara dapet
+            SoundManager.PlaySound("strike");
+
+            // POST max angle to database here
+            if (angleTarget != 0)
+            {
+                cobaApi.HitHistories(username, shoulderType, angleTarget.ToString(), maxAngle.ToString());
+            }
+            
             // tambah score
-            addScore();
+            AddScore();
 
             // animasi tarik pancingan
-            pullFishingRod();
+            PullFishingRod();
             
             // set back everything to 0
             angleTargetUI = 0;
-
 
             // set maxAngle to 0
             maxAngle = 0;
@@ -197,33 +200,67 @@ public class GameController : MonoBehaviour {
             StartCoroutine(AnimResetTarget());
             
         }
+
+        if (handLifted && currentAngle < 20)
+        {
+            CurrentStatus = Status.ANIM_TARGET;
+
+            ui_strike.gameObject.SetActive(true);
+
+            // suara dapet
+            SoundManager.PlaySound("strike");
+
+            // POST max angle to database here
+            if (angleTarget != 0)
+            {
+                cobaApi.HitHistories(username, shoulderType, angleTarget.ToString(), maxAngle.ToString());
+            }
+
+            // tambah score
+            AddScore();
+
+            // animasi tarik pancingan
+            PullFishingRod();
+
+            // set back everything to 0
+            angleTargetUI = 0;
+
+            // set maxAngle to 0
+            maxAngle = 0;
+
+            handLifted = false;
+
+            StartCoroutine(AnimResetTarget());
+        }
+
+
     }
 
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
-    private void checkAngleReset()
+    private void CheckAngleReset()
     {
         if (CurrentStatus != Status.PLAYING_RESET) return;
 
         if (currentAngle < 20)
         {
             CurrentStatus = Status.ANIM_TARGET;
-            setAngleTarget();
+            SetAngleTarget();
         }
     }
 
-    private void addScore()
+    private void AddScore()
     {
-        score = score + 1000;
+        score += 1000;
         text_score.text = score.ToString();
     }
 
-    private void setAngleTarget()
+    private void SetAngleTarget()
     {
         // random
-        angleTarget = UnityEngine.Random.Range(50, 100);
+        //angleTarget = UnityEngine.Random.Range(50, 100);
 
         // kalman filter
-        //AmbilData();
+        SetKalmanFilter();
 
         // set target angle
         player.SetTargetAngle(angleTarget);
@@ -236,51 +273,42 @@ public class GameController : MonoBehaviour {
     IEnumerator ImportData()
     {
         cobaApi.AmbilData(shoulderType);
-        //yield return new WaitForSeconds(5f);
-        yield return null;
-
         actuals = new double[cobaApi.actualData.Length];
-        
-        Debug.Log("Data diambil! | " + shoulderType);
-
         bool isDebug = true;
+
         for (int i = 0; i < cobaApi.actualData.Length; i++)
         {
             actuals[i] = (double) cobaApi.actualData[i];
         }
 
         KalmanFilter kf = new KalmanFilter(actuals, isDebug);
-        double result = kf.process(0.1);
-
-        //angleTarget = (int)result;
-
+        result = kf.process(0.1);
+        angleTarget = (int)result;
         Debug.Log("Hasil Prediksi: " + angleTarget);
-        Debug.Log("Kalman Executed!");
-        
+        yield return null;
 
     }
 
-    public void AmbilData()
+    public void SetKalmanFilter()
     {
         StartCoroutine(ImportData());
-
     }
 
-    private void reset()
+    private void Reset()
     {
-        StartCoroutine(waitFor(1.0f));
+        StartCoroutine(WaitFor(1.0f));
 
         // set angle dan text_angle jadi 0
         currentAngle = 0;
         text_angle.text = currentAngle.ToString();
 
-        StartCoroutine(waitFor(1.0f));
+        StartCoroutine(WaitFor(1.0f));
 
         Debug.Log("Nunggu selesai");
         currentLevel++;
     }
 
-    IEnumerator waitFor(float duration)
+    IEnumerator WaitFor(float duration)
     {
         yield return new WaitForSeconds(duration);
         // set line jadi panjang
@@ -290,9 +318,10 @@ public class GameController : MonoBehaviour {
         player.myAnim.SetBool("pull", false);
         ui_strike.gameObject.SetActive(false);
         ui_failed.gameObject.SetActive(false);
+        ui_passit.gameObject.SetActive(false);
     }
 
-    IEnumerator waitForFish(float duration)
+    IEnumerator WaitForFish(float duration)
     {
         yield return new WaitForSeconds(duration);
         onHook = false;
@@ -353,7 +382,7 @@ public class GameController : MonoBehaviour {
                 }
                 else
                 {
-                    status_player.text = "TANGAN TIDAK LURUS";
+                    status_player.text = "YOUR HAND ISN'T STRAIGHT";
                 }
             }
             else
@@ -403,13 +432,13 @@ public class GameController : MonoBehaviour {
         }
     }
 
-	public void setShoulderRight(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
+	public void SetShoulderRight(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
 		shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderRight);
 		elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowRight);
 		wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristRight);
 	}
 
-	public void setShoulderLeft(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
+	public void SetShoulderLeft(uint kinectplayer, Vector3 shoulder, Vector3 elbow, Vector3 wrist){
 		shoulder = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ShoulderLeft);
 		elbow = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.ElbowLeft);
 		wrist = manager.GetJointPosition(kinectplayer, (int)KinectWrapper.NuiSkeletonPositionIndex.WristLeft);
