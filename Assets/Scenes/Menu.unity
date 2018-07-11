@@ -573,8 +573,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -4.32, y: 2.35}
-  m_SizeDelta: {x: 243.01, y: 94.17}
+  m_AnchoredPosition: {x: -4.403, y: 0.632}
+  m_SizeDelta: {x: 236.76, y: 223.049}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &226454267
 MonoBehaviour:
@@ -607,10 +607,15 @@ MonoBehaviour:
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
-    m_LineSpacing: 1
+    m_LineSpacing: 1.26
   m_Text: '>Stand right in front of the kinect
 
-    >Raise your hand to the target angle given in the game'
+    >Raise your hand to the target angle given in the game
+
+    >If you have reached the target and you think you still can pass it, go for it
+    as high as you can
+
+    >If you think it''s enough, then slowly put down your hand till your body'
 --- !u!222 &226454268
 CanvasRenderer:
   m_ObjectHideFlags: 0

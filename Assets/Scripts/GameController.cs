@@ -153,7 +153,7 @@ public class GameController : MonoBehaviour {
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
     private void CheckAngle()
     {
-        
+       
         if (CurrentStatus != Status.PLAYING) return;
 
         if (currentAngle == angleTarget)
@@ -169,7 +169,7 @@ public class GameController : MonoBehaviour {
             //StartCoroutine(AnimResetTarget());
         }
 
-        if (isAngleReached && currentAngle < 20)
+        if ((isAngleReached && currentAngle < 20) || (handLifted && currentAngle < 20))
         {
 
             CurrentStatus = Status.ANIM_TARGET;
@@ -178,15 +178,18 @@ public class GameController : MonoBehaviour {
 
             // suara dapet
             SoundManager.PlaySound("strike");
+            
 
             // POST max angle to database here
             if (angleTarget != 0)
             {
                 cobaApi.HitHistories(username, shoulderType, angleTarget.ToString(), maxAngle.ToString());
+                Debug.Log("ActualData " +maxAngle+" | isAngleReached: " + isAngleReached + " | CurrentAngle: " + (currentAngle < 20) + " | HandLifted: " + handLifted + " | AngleTarget: " + angleTarget);
+                // tambah score
+                AddScore();
+
             }
-            
-            // tambah score
-            AddScore();
+
 
             // animasi tarik pancingan
             PullFishingRod();
@@ -196,44 +199,19 @@ public class GameController : MonoBehaviour {
 
             // set maxAngle to 0
             maxAngle = 0;
+            isAngleReached = false;
 
-            StartCoroutine(AnimResetTarget());
-            
-        }
-
-        if (handLifted && currentAngle < 20)
-        {
-            CurrentStatus = Status.ANIM_TARGET;
-
-            ui_strike.gameObject.SetActive(true);
-
-            // suara dapet
-            SoundManager.PlaySound("strike");
-
-            // POST max angle to database here
-            if (angleTarget != 0)
+            if (handLifted)
             {
-                cobaApi.HitHistories(username, shoulderType, angleTarget.ToString(), maxAngle.ToString());
+                handLifted = false;
             }
 
-            // tambah score
-            AddScore();
-
-            // animasi tarik pancingan
-            PullFishingRod();
-
-            // set back everything to 0
-            angleTargetUI = 0;
-
-            // set maxAngle to 0
-            maxAngle = 0;
-
-            handLifted = false;
-
             StartCoroutine(AnimResetTarget());
+            Debug.Log("Kebawah | isAngleReached: " + isAngleReached + " | CurrentAngle: " + (currentAngle < 20) + " | HandLifted: " + handLifted + " | AngleTarget: " + angleTarget);
+
+
         }
-
-
+        
     }
 
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
@@ -251,12 +229,13 @@ public class GameController : MonoBehaviour {
     private void AddScore()
     {
         score += 1000;
+
         text_score.text = score.ToString();
     }
 
     private void SetAngleTarget()
     {
-        // random
+        
         //angleTarget = UnityEngine.Random.Range(50, 100);
 
         // kalman filter
@@ -268,6 +247,7 @@ public class GameController : MonoBehaviour {
         // animasi set target
         angleTargetUI = 360 - angleTarget;
         StartCoroutine(AnimSetTarget());
+
     }
 
     IEnumerator ImportData()
@@ -285,6 +265,7 @@ public class GameController : MonoBehaviour {
         result = kf.process(0.1);
         angleTarget = (int)result;
         Debug.Log("Hasil Prediksi: " + angleTarget);
+
         yield return null;
 
     }
@@ -313,7 +294,7 @@ public class GameController : MonoBehaviour {
         yield return new WaitForSeconds(duration);
         // set line jadi panjang
         player.line.transform.localScale = new Vector3(1, 1f, 1);
-        isAngleReached = false;
+        //isAngleReached = false;
         moveFish.moveToTarget = true;
         player.myAnim.SetBool("pull", false);
         ui_strike.gameObject.SetActive(false);
@@ -375,7 +356,7 @@ public class GameController : MonoBehaviour {
                     player.line.localScale -= new Vector3(0, 0.01f, 0);
 
                     status_player.text = currentAngle.ToString();
-                    text_target.text = angleTarget.ToString();
+                    text_target.text = "Your Target: " + angleTarget.ToString();
 
                     text_angle.text = currentAngle.ToString();
 
