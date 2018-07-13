@@ -1536,6 +1536,10 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1114129225697908, guid: fb90e8d69f7c97d4f86f9caf7af78af8, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: fb90e8d69f7c97d4f86f9caf7af78af8, type: 2}
   m_IsPrefabParent: 0
@@ -1812,6 +1816,11 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
+--- !u!1 &938054869 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1114129225697908, guid: fb90e8d69f7c97d4f86f9caf7af78af8,
+    type: 2}
+  m_PrefabInternal: {fileID: 573720820}
 --- !u!1001 &953422791
 Prefab:
   m_ObjectHideFlags: 0
@@ -3693,6 +3702,7 @@ MonoBehaviour:
   selectArm: {fileID: 929779881}
   back: {fileID: 522672714}
   signInForm: {fileID: 1782958081}
+  loading: {fileID: 938054869}
   text_username: {fileID: 695227689}
   isTimeOnToggle: {fileID: 0}
 --- !u!114 &2028809494

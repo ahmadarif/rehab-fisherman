@@ -10,6 +10,7 @@ public class MenuController : MonoBehaviour {
     public GameObject selectArm;
 	public GameObject back;
 	public GameObject signInForm;
+	public GameObject loading;
     public Text text_username;
     public Toggle isTimeOnToggle;
 
@@ -20,9 +21,9 @@ public class MenuController : MonoBehaviour {
         PlayerPrefs.SetInt("toggleShoulder", 0);
 
 		if (string.IsNullOrEmpty(username)) {
-			signInForm.SetActive (true);
+			signInForm.SetActive(true);
 		} else {
-			signInForm.SetActive (false);
+			signInForm.SetActive(false);
             text_username.text = "Welcome back, " + username;
 		}
     }
@@ -71,9 +72,6 @@ public class MenuController : MonoBehaviour {
 
 	public void Logout(){
 		PlayerPrefs.SetString ("username", null);
-		signInForm.SetActive (true);
+		signInForm.SetActive(true);
 	}
-
-    
-
 }
