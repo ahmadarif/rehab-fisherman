@@ -1,11 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using System.Collections;
-using System.Collections.Generic;
 
-public class MenuController : MonoBehaviour {
-
+public class MenuController : MonoBehaviour
+{
     public GameObject tutorial;
     public GameObject selectArm;
 	public GameObject back;
@@ -13,9 +11,10 @@ public class MenuController : MonoBehaviour {
 	public GameObject loading;
     public Text text_username;
     public Toggle isTimeOnToggle;
+	public Api api;
 
-    void Start () {
-
+    void Start ()
+	{
 		string username = PlayerPrefs.GetString("username");
 
         PlayerPrefs.SetInt("toggleShoulder", 0);
@@ -26,9 +25,25 @@ public class MenuController : MonoBehaviour {
 			signInForm.SetActive(false);
             text_username.text = "Welcome back, " + username;
 		}
-    }
 
-    public void LoadTutorial()
+		//StartCoroutine(Cek());
+	}
+
+	IEnumerator Cek()
+	{
+		CoroutineWithData cd = new CoroutineWithData(this, api.HttpGetHistories("arif", "right"));
+		yield return cd.coroutine;
+
+		Debug.Log("result is " + cd.result);
+		Debug.Log("message is " + Global.Instance().message);
+		
+
+		//HistoryRes myObject = new HistoryRes();
+		//JsonUtility.FromJsonOverwrite((string)cd.result, myObject);
+		//Debug.Log(myObject.data[0]);
+	}
+
+	public void LoadTutorial()
     {
         SoundManager.PlaySound("button_click");
         tutorial.SetActive(true);
@@ -62,15 +77,18 @@ public class MenuController : MonoBehaviour {
         }
     }
 
-	public void SelectRightShoulder(){
-		PlayerPrefs.SetString ("shoulder","right");
+	public void SelectRightShoulder()
+	{
+		PlayerPrefs.SetString("shoulder","right");
 	}
 
-	public void SelectLeftShoulder(){
-		PlayerPrefs.SetString ("shoulder","left");
+	public void SelectLeftShoulder()
+	{
+		PlayerPrefs.SetString("shoulder", "left");
 	}
 
-	public void Logout(){
+	public void Logout()
+	{
 		PlayerPrefs.SetString ("username", null);
 		signInForm.SetActive(true);
 	}

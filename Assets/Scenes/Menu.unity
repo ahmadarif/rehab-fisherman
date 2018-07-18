@@ -1282,19 +1282,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2feb01f671932eb48a3ee630d14ceb8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  username: 
-  hand: 
-  prediction: 
-  actual: 
-  input_un: {fileID: 0}
-  input_hand: {fileID: 0}
-  idDB: 
-  usernameDB: 
-  handDB: 
-  predictionDB: 
-  actualDB: 
-  actualData: 
-  predictionData: 
 --- !u!224 &401597516 stripped
 RectTransform:
   m_PrefabParentObject: {fileID: 224945285019376118, guid: fb90e8d69f7c97d4f86f9caf7af78af8,
@@ -3705,6 +3692,7 @@ MonoBehaviour:
   loading: {fileID: 938054869}
   text_username: {fileID: 695227689}
   isTimeOnToggle: {fileID: 0}
+  api: {fileID: 400735992}
 --- !u!114 &2028809494
 MonoBehaviour:
   m_ObjectHideFlags: 0

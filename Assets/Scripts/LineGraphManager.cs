@@ -42,21 +42,19 @@ public class LineGraphManager : MonoBehaviour {
 	public int[] actualData;
 	public int[] predictionData;
 
-    public string shoulder ;
+    public string username;
+    public string shoulder;
 
     public Button buttonShoulder;
     
-	void Start(){
-
+	void Start()
+	{
+		username = PlayerPrefs.GetString("username");
         shoulder = "left";
         shoulderStatus.text = shoulder;
         buttonShoulder.GetComponentInChildren<Text>().text = "right";
-        //get data
-        AmbilData();
-        
-	}
 
-	public void AmbilData(){
+		//get data
 		StartCoroutine(ImportData());
 	}
 
@@ -68,28 +66,36 @@ public class LineGraphManager : MonoBehaviour {
         {            
             shoulder = "right";
             buttonShoulder.GetComponentInChildren<Text>().text = "right";
-            AmbilData();
+			StartCoroutine(ImportData());
 
-        }
+		}
         else if (shoulder == "right")
         {
             shoulder = "left";
             buttonShoulder.GetComponentInChildren<Text>().text = "left";
-            AmbilData();
-        }
+			StartCoroutine(ImportData());
+		}
 
         shoulderStatus.text = shoulder;
     }
 
-	public IEnumerator ImportData(){
-
+	public IEnumerator ImportData()
+	{
         buttonShoulder.interactable = false;
-        Debug.Log(" Shoulder: " + shoulder);
-        cobaApi.AmbilData(shoulder);
-		Debug.Log ("Ambil Data");
-		yield return new WaitForSeconds(2f);
-		actualData = cobaApi.actualData;
-		predictionData = cobaApi.predictionData;
+
+		CoroutineWithData cd = new CoroutineWithData(this, cobaApi.HttpGetHistories(username, shoulder));
+		yield return cd.coroutine;
+
+		HistoryRes myObject = new HistoryRes();
+		JsonUtility.FromJsonOverwrite((string)cd.result, myObject);
+
+		actualData = new int[myObject.data.Length];
+		predictionData = new int[myObject.data.Length];
+		for (int i = 0; i < myObject.data.Length; i++)
+		{
+			actualData[i] = (int)myObject.data[i].actual;
+			predictionData[i] = (int)myObject.data[i].prediction;
+		}
 
 		// adding data from database
 		int index = actualData.Length;
@@ -108,8 +114,6 @@ public class LineGraphManager : MonoBehaviour {
 		// showing graph
 		ShowGraph();
         buttonShoulder.interactable = true;
-
-
     }
 
 	public void ShowData(GraphData[] gdlist,int playerNum,float gap) {

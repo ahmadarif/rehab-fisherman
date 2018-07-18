@@ -4024,19 +4024,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2feb01f671932eb48a3ee630d14ceb8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  username: 
-  hand: 
-  prediction: 
-  actual: 
-  input_un: {fileID: 0}
-  input_hand: {fileID: 0}
-  idDB: 
-  usernameDB: 
-  handDB: 
-  predictionDB: 
-  actualDB: 
-  actualData: 
-  predictionData: 
 --- !u!1 &1293448543
 GameObject:
   m_ObjectHideFlags: 0
@@ -4509,8 +4496,10 @@ MonoBehaviour:
   selectArm: {fileID: 0}
   back: {fileID: 0}
   signInForm: {fileID: 0}
+  loading: {fileID: 0}
   text_username: {fileID: 0}
   isTimeOnToggle: {fileID: 0}
+  api: {fileID: 0}
 --- !u!114 &1358621338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6060,7 +6049,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1358621334}
+      - m_Target: {fileID: 1358621339}
         m_MethodName: LoadScene
         m_Mode: 5
         m_Arguments:
@@ -6804,7 +6793,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1358621334}
+      - m_Target: {fileID: 1358621339}
         m_MethodName: LoadScene
         m_Mode: 5
         m_Arguments:

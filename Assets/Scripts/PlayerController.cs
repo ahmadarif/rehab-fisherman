@@ -35,7 +35,7 @@ public class PlayerController : MonoBehaviour {
 
     private void KeyboardInput ()
     {
-        if (GameController.CurrentStatus != Status.PLAYING && GameController.CurrentStatus != Status.PLAYING_RESET) return;
+        if (GameController.CurrentStatus != Status.PLAYING && GameController.CurrentStatus != Status.LOADING_RESET_TARGET) return;
         if (Input.GetKey(KeyCode.DownArrow))
         {
             anglePointer.transform.Rotate(0, 0, pullSpeed);
@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour {
 
     private void UpdateHooksUI()
     {
-        hooksScale = 1.0f - ((float)currentAngle / (float)targetAngle);
-        line.transform.localScale = new Vector3(1, hooksScale, 0);
+        //hooksScale = 1.0f - ((float)currentAngle / (float)targetAngle);
+        //line.transform.localScale = new Vector3(1, hooksScale, 0);
     }
 }
