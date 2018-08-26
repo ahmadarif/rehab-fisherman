@@ -145,10 +145,22 @@ public class GameController : MonoBehaviour {
             gameover_ui.gameObject.SetActive(true);
 
 			CurrentStatus = Status.GAME_OVER;
-			KinectWrapper.NuiShutdown();
+			manager.DisplayUserMap = false;
+			manager.DisplayColorMap = false;
+			manager.DisplaySkeletonLines = false;
 			manager = null;
+			KinectWrapper.NuiShutdown();
 		}
     }
+
+	public void DestroyKinect()
+	{
+		manager.DisplayUserMap = false;
+		manager.DisplayColorMap = false;
+		manager.DisplaySkeletonLines = false;
+		manager = null;
+		KinectWrapper.NuiShutdown();
+	}
 
     private void PlayerKeyboard()
     {

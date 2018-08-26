@@ -341,17 +341,17 @@ Prefab:
     - target: {fileID: 114322895503354550, guid: b1bc27a650b45c14a8d0fe7c7ff745a9,
         type: 2}
       propertyPath: DisplaySkeletonLines
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 114322895503354550, guid: b1bc27a650b45c14a8d0fe7c7ff745a9,
         type: 2}
       propertyPath: DisplayColorMap
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 114322895503354550, guid: b1bc27a650b45c14a8d0fe7c7ff745a9,
         type: 2}
       propertyPath: DisplayUserMap
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: b1bc27a650b45c14a8d0fe7c7ff745a9, type: 2}
@@ -5421,6 +5421,17 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: Menu
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1358621334}
+        m_MethodName: DestroyKinect
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
