@@ -39,6 +39,7 @@ public class MenuController : MonoBehaviour
         SoundManager.PlaySound("button_click");
         tutorial.SetActive(false);
         selectArm.SetActive(false);
+		signInForm.SetActive(false);
         back.SetActive(false);
     }
 
