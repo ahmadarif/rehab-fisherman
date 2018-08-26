@@ -44,8 +44,7 @@ public class GameController : MonoBehaviour {
     int angleTarget;
     int angleTargetAwal;
     int angleTargetUI;
-
-
+	
     int fishCaught;
     int score;
     int currentLevel;
@@ -74,8 +73,8 @@ public class GameController : MonoBehaviour {
         // Get kinect instance
         manager = KinectManager.Instance;
 
-        // Set max angle
-        maxAngle = 0;
+		// Set max angle
+		maxAngle = 0;
 
         currentLevel = 1;
         fishCaught = 0;
@@ -135,23 +134,28 @@ public class GameController : MonoBehaviour {
 
     private void Gameplay()
     {
-        if (currentLevel <= 10)
+        if (currentLevel <= 10 + 1)
         {
             CheckAngle();
         }
+		// selesai 10 gerakan
         else
         {
-            text_finalScore.text = "Score: " + text_score.text;
+			text_finalScore.text = "Score: " + text_score.text;
             gameover_ui.gameObject.SetActive(true);
-        }
+
+			CurrentStatus = Status.GAME_OVER;
+			KinectWrapper.NuiShutdown();
+			manager = null;
+		}
     }
 
     private void PlayerKeyboard()
     {
-        currentAngle = Mathf.RoundToInt(360 - player.anglePointer.transform.eulerAngles.z);
-        if (currentAngle == 360) currentAngle = 0;
-        text_angle.text = currentAngle.ToString();
-    }
+		currentAngle = Mathf.RoundToInt(360 - player.anglePointer.transform.eulerAngles.z);
+		if (currentAngle == 360) currentAngle = 0;
+		text_angle.text = currentAngle.ToString();
+	}
 
     private void PullFishingRod()
     {
@@ -165,10 +169,8 @@ public class GameController : MonoBehaviour {
     // proses pengecekan apakah sudut player sesuai dengan sudut targetnya
     private void CheckAngle()
     {
-       
-        if (CurrentStatus != Status.PLAYING) return;
-
-        if (currentAngle == angleTarget)
+		// check apakah sudah mencapai target
+        if (currentAngle >= angleTarget && !isAngleReached)
         {
             isAngleReached = true;
 
@@ -222,31 +224,33 @@ public class GameController : MonoBehaviour {
     private void AddScore()
     {
 		score += 1000;
-
         text_score.text = score.ToString();
     }
 
     IEnumerator ImportData()
     {
+		// ambil data dari database
 		CoroutineWithData cd = new CoroutineWithData(this, cobaApi.HttpGetHistories(username, shoulderType));
 		yield return cd.coroutine;
 
+		// parsing data ke kelas model
 		HistoryRes myObject = new HistoryRes();
 		JsonUtility.FromJsonOverwrite((string)cd.result, myObject);
 
+		// simpan ke variabel array untuk perhitungan
 		actuals = new double[myObject.data.Length];
 		for (int i = 0; i < myObject.data.Length; i++)
 		{
 			actuals[i] = myObject.data[i].actual;
 		}
 
+		// hitung prediksi target selanjutnya
 		CalcPrediction();
     }
 
 	IEnumerator PostScore(string username, string shoulder, double prediction, double actual)
 	{
-		Debug.Log("ActualData " + maxAngle + " | isAngleReached: " + isAngleReached + " | CurrentAngle: " + (currentAngle < 20) + " | HandLifted: " + handLifted + " | AngleTarget: " + angleTarget);
-
+		// simpan ke database
 		CoroutineWithData cd = new CoroutineWithData(this, cobaApi.HttpPostHistory(username, shoulder, prediction, actual));
 		yield return cd.coroutine;
 
@@ -281,20 +285,6 @@ public class GameController : MonoBehaviour {
 		StartCoroutine(AnimSetTarget());
 	}
 
-	//private void Reset()
- //   {
- //       StartCoroutine(WaitFor(1.0f));
-
- //       // set angle dan text_angle jadi 0
- //       currentAngle = 0;
- //       text_angle.text = currentAngle.ToString();
-
- //       StartCoroutine(WaitFor(1.0f));
-
- //       Debug.Log("Nunggu selesai");
- //       currentLevel++;
- //   }
-
     IEnumerator WaitFor(float duration)
     {
         yield return new WaitForSeconds(duration);
@@ -308,13 +298,6 @@ public class GameController : MonoBehaviour {
         ui_failed.gameObject.SetActive(false);
         ui_passit.gameObject.SetActive(false);
     }
-
-    IEnumerator WaitForFish(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        onHook = false;
-    }
-
     
     private void UpdateKinectUser()
     {
@@ -353,20 +336,14 @@ public class GameController : MonoBehaviour {
                 //cek apabila tangan lurus
                 if (Angle.isStraight(shoulder, elbow, wrist, 20))
                 {
-                    //status_player.text = Angle.calculate(spine, shoulder, elbow).ToString();
-
                     // bulatkan menjadi 0 digit di belakang koma
                     currentAngle = Mathf.RoundToInt((float)Angle.calculate(spine, shoulder, elbow));
 
+					// posisi sudut pemain
                     player.anglePointer.transform.localEulerAngles = new Vector3(0, 0, -currentAngle);
 
-                    player.line.localScale -= new Vector3(0, 0.01f, 0);
-
-                    status_player.text = currentAngle.ToString();
+					status_player.text = "";
                     text_target.text = "Your Target: " + angleTarget.ToString();
-
-                    text_angle.text = currentAngle.ToString();
-
                 }
                 else
                 {

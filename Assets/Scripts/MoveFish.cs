@@ -3,19 +3,21 @@ using System.Collections;
 
 public class MoveFish : MonoBehaviour {
 
-    public Transform target,
-        awayTarget;
+	public Transform target;
+	public Transform awayTarget;
     public float speed;
     public bool moveToTarget;
     private int current;
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+	{
         moveToTarget = true;
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+	{
         //fish movement
         if (moveToTarget)
         {
@@ -34,9 +36,6 @@ public class MoveFish : MonoBehaviour {
                 transform.position = Vector2.MoveTowards(transform.position, awayTarget.position, speed * Time.deltaTime);
                 
             }
-        }
-        
-
-        
+        }   
     }
 }

@@ -25,22 +25,6 @@ public class MenuController : MonoBehaviour
 			signInForm.SetActive(false);
             text_username.text = "Welcome back, " + username;
 		}
-
-		//StartCoroutine(Cek());
-	}
-
-	IEnumerator Cek()
-	{
-		CoroutineWithData cd = new CoroutineWithData(this, api.HttpGetHistories("arif", "right"));
-		yield return cd.coroutine;
-
-		Debug.Log("result is " + cd.result);
-		Debug.Log("message is " + Global.Instance().message);
-		
-
-		//HistoryRes myObject = new HistoryRes();
-		//JsonUtility.FromJsonOverwrite((string)cd.result, myObject);
-		//Debug.Log(myObject.data[0]);
 	}
 
 	public void LoadTutorial()
